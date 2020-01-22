@@ -18,7 +18,7 @@ var ymax, xmax int
 
 func main() {
 	// Get file
-	file, err := os.Open("test2.png")
+	file, err := os.Open("test.png")
 	if err != nil {log.Fatal(err)} // Error case
 
 	defer file.Close() // Close the file t the end of the code
