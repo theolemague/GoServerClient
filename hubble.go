@@ -18,7 +18,7 @@ var ymax, xmax int
 
 func main() {
 	// Get file
-	file, err := os.Open("test.png")
+	file, err := os.Open("hubble.png")
 	if err != nil {log.Fatal(err)} // Error case
 
 	defer file.Close() // Close the file t the end of the code
@@ -49,7 +49,8 @@ func main() {
 	// Add the ranges in the channel
 	pushnum := 0
     for mcpt:= 0; mcpt < ymax ; mcpt+= 200{
-        pushnum ++	// Count nb of channel
+		pushnum ++	// Count nb of channel
+		fmt.Printf("goroutine %v\n", mcpt/200)
         toPush := lineRange{from: mcpt, to: mcpt+199}
 		inputChannel <- toPush
 		if (mcpt == nbGoroutine*200){
@@ -59,8 +60,9 @@ func main() {
 	}
 	fmt.Printf("Number of channel %v\n", pushnum)
 	
-	for rescpt := 0; rescpt < pushnum; rescpt ++{
-        <- outputChannel
+	for i := 0; i < pushnum; i ++{
+		<- outputChannel
+		fmt.Printf("goroutine %v\n", i)
 	}
 
 	outFile, err := os.Create("changed.png")
@@ -75,6 +77,7 @@ func main() {
 func RGBtoGray(inp chan lineRange, feedback chan string, img image.Image, imgGray *image.Gray ) {
 	for{
 		rng := <-inp
+		
 		for i:= 0 ; i<xmax ; i++{
 			for j:=rng.from ; j<rng.to ; j++ {
 				RGBApx := img.At(i,j)
