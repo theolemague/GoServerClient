@@ -83,4 +83,76 @@ func main() {
   for {fmt.Println(<-c)}
 }
 ```
+## Tcp
+```go
+type Message struct {
+	ID   string
+	Data string
+}
+func send(conn net.Conn) {
+	msg := Message{ID: "Yo", Data: "Hello"}
+	bin_buf := new(bytes.Buffer)
+	gobobj := gob.NewEncoder(bin_buf)
+	gobobj.Encode(msg)
+	conn.Write(bin_buf.Bytes())
+}
+func recv(conn net.Conn) {
+	tmp := make([]byte, 500)
+	conn.Read(tmp)
+	tmpbuff := bytes.NewBuffer(tmp)
+	tmpstruct := new(Message)
+	gobobjdec := gob.NewDecoder(tmpbuff)
+	gobobjdec.Decode(tmpstruct)
+	fmt.Println(tmpstruct)
+}
+func main() {
+	conn, _ := net.Dial("tcp", ":8081")
+	send(conn)
+	recv(conn)
+}
+```
+```go
+unc read(conn net.Conn) {
+  tmp := make([]byte, 500)
+  for {
+    _, err := conn.Read(tmp)
+    if logerr(err) {break}
+    tmpbuff := bytes.NewBuffer(tmp)
+    tmpstruct := new(Message
+    gobobj := gob.NewDecoder(tmpbuff)
+    gobobj.Decode(tmpstruct)
+    fmt.Println(tmpstruct)
+    return
+  }
+}
+func resp(conn net.Conn) {
+  msg := Message{ID: "Yo", Data: "Hello back"}
+  bin_buf := new(bytes.Buffer)
+  gobobje := gob.NewEncoder(bin_buf)
+  gobobje.Encode(msg)
+  conn.Write(bin_buf.Bytes())
+  conn.Close()
+}
 
+func handle(conn net.Conn) {
+  timeoutDuration := 2 * time.Second
+  fmt.Println("Launching server...")
+  conn.SetReadDeadline(time.Now().Add(timeoutDuration))
+  remoteAddr := conn.RemoteAddr().String()
+  fmt.Println("Client connected from " + remoteAddr)
+  read(conn)
+  resp(conn)
+}
+
+func main() {
+  server, _ := net.Listen("tcp", ":8081")
+  for {
+    conn, err := server.Accept()
+      if err != nil {
+        log.Println("Connection error: ", err)
+        return
+      }
+    go handle(conn)
+  	}
+}
+```
