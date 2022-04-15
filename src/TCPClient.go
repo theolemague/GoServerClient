@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
-// "time"
 )
 
 type Message struct {

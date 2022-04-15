@@ -34,7 +34,7 @@ func read(conn net.Conn) {
     _, err := conn.Read(tmp)
     if logerr(err) {break}
     tmpbuff := bytes.NewBuffer(tmp)
-    tmpstruct := new(Message
+    tmpstruct := new(Message)
     gobobj := gob.NewDecoder(tmpbuff)
     gobobj.Decode(tmpstruct)
     fmt.Println(tmpstruct)

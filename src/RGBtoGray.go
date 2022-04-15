@@ -1,14 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"image/color"
 	"image"
 	"image/png"
+	"strings"
 )
-
 
 type lineRange struct{
     from int
@@ -17,14 +18,19 @@ type lineRange struct{
 var ymax, xmax int
 
 func main() {
+	// Get Image Name
+	imageSource := GetImageSource()
 	// Get file
-	file, err := os.Open("hubble.png")
-	if err != nil {log.Fatal(err)} // Error case
-
-	defer file.Close() // Close the file t the end of the code
+	file, err := os.Open("images/"+imageSource)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	// Close the file at the end of the code
+	defer file.Close() 
 
 	img, err := png.Decode(file)
-	if err != nil {log.Fatal(err)}	// Error case
+	if err != nil {log.Fatal(err)}
 
 	b := img.Bounds()			// Get border of the image
 	ymax = b.Max.Y				// Number of lines
@@ -33,7 +39,6 @@ func main() {
 	
 	nbGoroutine := ymax/200		// Get the number of goroutine -> 1 goroutines threat 200 lines
 								// the latest threat the rest
-	fmt.Println(ymax)
 	fmt.Printf("Number of goroutine : %v\n", nbGoroutine)
 
 	var inputChannel chan lineRange	// Channel containing the range of line to threat for each goroutine
@@ -50,7 +55,6 @@ func main() {
 	pushnum := 0
     for mcpt:= 0; mcpt < ymax ; mcpt+= 200{
 		pushnum ++	// Count nb of channel
-		fmt.Printf("goroutine %v\n", mcpt/200)
         toPush := lineRange{from: mcpt, to: mcpt+199}
 		inputChannel <- toPush
 		if (mcpt == nbGoroutine*200){
@@ -58,20 +62,30 @@ func main() {
 			inputChannel <- toPush
 		}
 	}
-	fmt.Printf("Number of channel %v\n", pushnum)
+	fmt.Printf("Number of channel : %v\n", pushnum)
 	
 	for i := 0; i < pushnum; i ++{
 		<- outputChannel
-		fmt.Printf("goroutine %v\n", i)
 	}
 
-	outFile, err := os.Create("changed.png")
+	outFile, err := os.Create("images/"+strings.Split(imageSource, ".")[0]+"_changed.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer outFile.Close()
 	png.Encode(outFile, imgGray)
    
+}
+
+func GetImageSource() string {
+	flag.Parse()
+	if len(flag.Args()) != 1 {
+        fmt.Println("Default image is used")
+		return "lena.png"
+    } else {
+		fmt.Println("Given image is "+flag.Args()[0])
+		return flag.Args()[0]
+	}
 }
 
 func RGBtoGray(inp chan lineRange, feedback chan string, img image.Image, imgGray *image.Gray ) {
